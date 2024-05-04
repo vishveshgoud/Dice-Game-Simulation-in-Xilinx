@@ -169,3 +169,39 @@ module attempt_counter(
 
 endmodule
 ----------------------------------------------------------------
+# Dice value comparator
+
+module dicecomparator(
+    
+    input [3:0] dv,
+    
+    output dg9,
+    
+    output dl4
+    
+    );
+    
+    assign dg9 = (dv[3] & dv[2]) | (dv[3] & dv[0]) | (dv[3] & dv[1]);
+    
+    assign dl4 = (~dv[3] & ~dv[2]) | (~dv[3] & ~dv[0] & ~dv[1]);
+
+endmodule
+-----------------------------------------------------------
+# score comparator
+
+module score_comparator(
+    
+    input [6:0] sc,
+    
+    output scg99,
+    
+    output scl10
+    
+    );
+    
+    assign scl10=~(sc[4] | sc[5] | sc[6] | sc[3]) | ((~sc[6]&~sc[5]&~sc[4]&sc[3]&~sc[2]&~sc[1]&~sc[0]) | (~sc[6]&~sc[5]&~sc[4]&sc[3]&~sc[2]&~sc[1]&sc[0]));  
+    
+    assign scg99= (sc[6] & sc[5]) & ~((sc[6]&sc[5]&~sc[4]&~sc[3]&~sc[2]&~sc[1]&~sc[0]) | (sc[6]&sc[5]&~sc[4]&~sc[3]&~sc[2]&~sc[1]&sc[0]) | (sc[6]&sc[5]&~sc[4]&~sc[3]&~sc[2]&sc[1]&~sc[0]) | (sc[6]&sc[5]&~sc[4]&~sc[3]&~sc[2]&sc[1]&sc[0])) ;
+
+endmodule
+-------------------------------------------------
