@@ -695,3 +695,6 @@ module game(
 
 endmodule
 ----------------------------
+# The Final Output 
+
+![dice game](https://github.com/vishveshgoud/Dice-Game-Simulation-in-Xilinx/assets/147975068/dc9f2ea3-4f20-400d-9739-ab65855f693e)
