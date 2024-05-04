@@ -478,3 +478,220 @@ module scoreregister(
 
 endmodule
 ------------------------------------------
+# Dice game Controller
+
+This block is built from th sub-block Rom content table
+
+module romcont(
+    
+    input [8:0] a,
+    
+    output [10:0] c
+    
+    );
+    
+    assign c[10] = (~a[8] & a[7]&a[6])|(~a[8] & a[7]&~a[6] &~a[3] & a[2] & a[1]) | (~a[8] & a[7]&~a[6] &~a[3] & a[2] & ~a[1]) | (~a[8] & a[7]&~a[6] &~a[3] & ~a[2]) | (a[8] & ~a[7]&~a[6] &~a[3] & a[4]) |  (a[8] & ~a[7]&a[6] &~a[3] );
+    
+    assign c[9]=(~a[8] & a[7]&~a[6] &a[3]) | (~a[8] & ~a[7]&a[6] &a[4]) ;
+    
+    assign c[8]=(~a[8] & ~a[7]&~a[6] &a[5]) | (~a[8] & ~a[7] & a[6] &~a[4]) | (~a[8] & a[7]&~a[6] &a[3]) | (~a[8] & a[7]&~a[6] &~a[3] & a[2] & ~a[1]) | (a[8] & ~a[7] &~a[6] & ~a[4]);
+    
+    assign c[7]=(~a[8] & ~a[7]&~a[6] &a[5]);
+    
+    assign c[6]=(~a[8] & ~a[7]&a[6] &~a[4]);
+    
+    assign c[5]= (~a[8] & a[7]&~a[6] &~a[3] & a[2] &~a[0]) | (a[8] & ~a[7]&a[6]);
+    
+    assign c[4]=(~a[8] & a[7]&~a[6] &a[3] & a[0]);
+    
+    assign c[3]=(~a[8] & a[7]&~a[6]  ) | (~a[8] & a[7]&a[6]) | (a[8] & ~a[7]&a[6]);
+    
+    assign c[2]=(~a[8] & a[7]&~a[6] &~a[3] & a[2] & a[1]);
+    
+    assign c[1]=(~a[8] & a[7]&~a[6] &a[3] & ~a[0]) |  (~a[8] & a[7]&~a[6] &~a[3] & a[2] & ~a[1]) | (~a[8] & a[7]&a[6]) | (a[8] & ~a[7]&a[6]);
+    
+    assign c[0]=(~a[8] & a[7]&~a[6]  );
+    
+endmodule
+---------------------------------------------------------------
+module controller(
+    
+    input start,
+    
+    input td,
+    
+    input dg9,
+    
+    input dl4,
+    
+    input scl10,
+    
+    input scg99,
+    
+    input clk,
+    
+    output  load2,
+    
+    output cnten,
+    
+    output  ads,
+    
+    output  pr,
+    
+    output  load,
+    
+    output  clr,
+    
+    output  s,
+    
+    output  enofa
+    
+    );
+    
+    wire a,b,c,ap,bp,cp;
+    
+    dff ff2(clk,start,ap,a);
+    
+    dff ff1(clk,start,bp,b);
+    
+    dff ff0(clk,start,cp,c);
+    
+    romcont r1({a,b,c,start,td,dg9,dl4,scl10,scg99},{ap,bp,cp,load2,cnten,ads,pr,load,clr,s,enofa});
+    
+    initial 
+    
+        $monitor("a:",a,"b:",b,"c:",c,"atart:",start,"td:",td,"dg:",dg9,"dl:",dl4,"scl10:",scl10,"scg99:",scg99,"ap:",ap,"bp:",bp,"cp:",cp,"load2:",load2,"cnten:",cnten,"ads:",ads,"pr:",pr,"load:",load,"clr:",clr,"s:",s,"enofa:",enofa);
+
+endmodule
+----------------------------------------------------------------------
+# The dice game top module fits all these sub blocks
+
+
+module thedicegame(
+    
+    input start,
+    
+    input td,
+    
+    input clk,
+    
+    input clr,
+    
+    output [3:0] dice,
+    
+    output [6:0] attempts,
+    
+    output [6:0] tscore
+    
+    );
+    
+    wire cntenable,enofa,dg9,dl4,load,scg99,scl10,pr,s,ads,load2;
+    
+    wire [6:0] asc,sc;
+    
+    wire [3:0] addin;
+    
+    loadable2to12_counter c1(clk,load2,cntenable,dice);
+    
+    attempt_counter c2(clk,enofa,start,attempts);
+    
+    dicecomparator d1(dice,dg9,dl4);
+    
+    score_comparator s1(tscore,scg99,scl10);
+    
+    scoreselect m1(asc,pr,sc);
+    
+    diceselect m2(dice,s,addin);
+    
+    addsub a4(tscore,addin,ads,asc);
+    
+    scoreregister sr(sc,load,clk,clr,start,tscore);
+    
+    controller c9(start,td,dg9,dl4,scl10,scg99,clk,load2,cntenable,ads,pr,load,clr,s,enofa);
+    
+    initial
+    
+        $monitor(tscore,"  ",addin,"  ",ads,"  ",asc,"  ",sc);
+
+endmodule
+-----------------------------------------------------------------
+# Testbench
+
+module game(
+
+    );
+    
+    reg clk,clr,start,td;
+    
+    wire [3:0] dice;
+    
+    wire [6:0] attempts,tscore;
+    
+    thedicegame uut(start,td,clk,clr,dice,attempts,tscore);
+    
+    initial begin
+    
+        clk=1'b1;
+        
+        forever #5 clk=~clk;
+    
+    end
+    
+    initial begin
+    
+        clr=1'b1;
+        
+        start=1'b1;
+        
+        #10;
+        
+        clr=1'b0;
+        
+        start=1'b0;
+        
+        td=0;
+        
+        #30;
+        
+        td=1;
+        
+        #10;
+        
+        td=0;
+        
+        #50;
+        
+        td=1;
+        
+        #10;
+        
+        td=0;
+        
+        #50;
+        
+        td=1;
+        
+        #10;
+        
+        td=0;
+        
+        #50;
+        
+        td=1;
+        
+        #10;
+        
+        td=0;
+        
+        #40;
+        
+        td=1;
+        
+        #10;
+        
+        td=0;
+        
+        end
+
+endmodule
+----------------------------
