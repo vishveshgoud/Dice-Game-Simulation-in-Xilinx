@@ -5,6 +5,7 @@
   1) Negative edge triggered t flipflop
   2) Negative edge triggered t flipflop with preset
 
-     
+
+
 
 
